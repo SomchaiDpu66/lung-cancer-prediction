@@ -132,7 +132,7 @@ with tab1:
             try:
                 with st.spinner('AI กำลังประมวลผล...'):
                     res = requests.post(
-                        "http://127.0.0.1:8001/predict", json=payload, timeout=10)
+                        "https://lung-cancer-api-c1e5.onrender.com/predict", json=payload, timeout=10)
                     if res.status_code == 200:
                         st.session_state['api_result'] = res.json()
                     else:
@@ -345,7 +345,7 @@ with tab2:
     try:
         user_id = st.session_state.get('id_card')
         history_res = requests.get(
-            f"http://127.0.0.1:8001/history/{user_id}", timeout=5)
+            f"https://lung-cancer-api-c1e5.onrender.com/history/{user_id}", timeout=5)
 
         if history_res.status_code == 200:
             history_data = history_res.json()

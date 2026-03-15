@@ -45,7 +45,7 @@ def show_registration():
             }
 
             response = requests.post(
-                "http://localhost:8000/register", json=payload)
+                "https://lung-cancer-api-c1e5.onrender.com/register", json=payload)
             if response.status_code == 200:
                 st.success("ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ")
             else:

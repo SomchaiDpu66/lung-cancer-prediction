@@ -16,7 +16,8 @@ user_id = st.session_state['id_card']
 
 # 1. ยิง API ไปขอดึงประวัติของ user_id นี้
 try:
-    res = requests.get(f"http://127.0.0.1:8001/history/{user_id}")
+    res = requests.get(
+        f"https://lung-cancer-api-c1e5.onrender.com/history/{user_id}")
 
     if res.status_code == 200:
         history_data = res.json()

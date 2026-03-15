@@ -8,7 +8,8 @@ import requests
 @st.cache_data(ttl=10)
 def get_profile_icon(id_card):
     try:
-        API_URL = os.environ.get("BACKEND_URL", "http://127.0.0.1:8001")
+        API_URL = os.environ.get(
+            "BACKEND_URL", "https://lung-cancer-api-c1e5.onrender.com")
         res = requests.get(f"{API_URL}/user/user/{id_card}", timeout=3)
         if res.status_code == 200:
             data = res.json()
