@@ -9,3 +9,4 @@ python-multipart
 joblib
 streamlit
 requests
+plotly  
