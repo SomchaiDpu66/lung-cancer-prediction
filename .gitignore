@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+venv/
+env/
+.DS_Store
+backend/lung_cancer.db
+
+# --- ส่วนที่แนะนำให้เพิ่ม ---
+backend/uploads/
+uploads/
+*.log

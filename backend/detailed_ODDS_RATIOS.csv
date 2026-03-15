@@ -1,0 +1,77 @@
+Dataset,Feature,Coefficient,Odds_Ratio
+"Set 1 (Small, Imbalanced)",age,0.017840139,1.018000225
+"Set 1 (Small, Imbalanced)",smoking,0.664737617,1.943980387
+"Set 1 (Small, Imbalanced)",yellow_fingers,1.173860705,3.234455846
+"Set 1 (Small, Imbalanced)",anxiety,1.101508417,3.008700979
+"Set 1 (Small, Imbalanced)",peer_pressure,1.514792385,4.548476697
+"Set 1 (Small, Imbalanced)",chronic_disease,1.570298457,4.808082984
+"Set 1 (Small, Imbalanced)",fatigue,1.769958126,5.870607531
+"Set 1 (Small, Imbalanced)",allergy,1.865012217,6.456014759
+"Set 1 (Small, Imbalanced)",wheezing,0.787701733,2.198338249
+"Set 1 (Small, Imbalanced)",alcohol_consuming,1.604421078,4.974978644
+"Set 1 (Small, Imbalanced)",coughing,1.131320996,3.099748553
+"Set 1 (Small, Imbalanced)",shortness_of_breath,0.413884935,1.51268306
+"Set 1 (Small, Imbalanced)",swallowing_difficulty,1.481058196,4.397596737
+"Set 1 (Small, Imbalanced)",chest_pain,0.496925879,1.643660684
+"Set 1 (Small, Imbalanced)",gender_M,-0.293632517,0.745550418
+"Set 2 (Medium, Balanced)",age,-1.47E-05,0.999985312
+"Set 2 (Medium, Balanced)",gender,-0.007231221,0.992794862
+"Set 2 (Medium, Balanced)",smoking,3.237287406,25.46455299
+"Set 2 (Medium, Balanced)",finger_discoloration,0.153283479,1.165655371
+"Set 2 (Medium, Balanced)",mental_stress,-0.081314484,0.921903722
+"Set 2 (Medium, Balanced)",exposure_to_pollution,0.778437145,2.178065604
+"Set 2 (Medium, Balanced)",long_term_illness,0.092171698,1.096553082
+"Set 2 (Medium, Balanced)",energy_level,0.084587293,1.088267838
+"Set 2 (Medium, Balanced)",immune_weakness,0.067543406,1.069876698
+"Set 2 (Medium, Balanced)",breathing_issue,2.74913868,15.62916438
+"Set 2 (Medium, Balanced)",alcohol_consumption,0.006806565,1.006829782
+"Set 2 (Medium, Balanced)",throat_discomfort,2.384877306,10.8577304
+"Set 2 (Medium, Balanced)",oxygen_saturation,0.019964029,1.020164643
+"Set 2 (Medium, Balanced)",chest_tightness,0.182809088,1.20058518
+"Set 2 (Medium, Balanced)",family_history,-0.28716358,0.75038897
+"Set 2 (Medium, Balanced)",smoking_family_history,1.652074953,5.217795283
+"Set 2 (Medium, Balanced)",stress_immune,1.613399046,5.019844948
+"Set 3 (Large, Imbalanced)",age,0.000276731,1.000276769
+"Set 3 (Large, Imbalanced)",bmi,7.76E-05,1.000077593
+"Set 3 (Large, Imbalanced)",cholesterol_level,4.50E-06,1.000004497
+"Set 3 (Large, Imbalanced)",hypertension,-0.003078078,0.996926654
+"Set 3 (Large, Imbalanced)",asthma,-0.006395664,0.993624745
+"Set 3 (Large, Imbalanced)",cirrhosis,0.009216067,1.009258665
+"Set 3 (Large, Imbalanced)",other_cancer,-0.017780273,0.982376864
+"Set 3 (Large, Imbalanced)",gender_Male,0.007696448,1.007726142
+"Set 3 (Large, Imbalanced)",country_Belgium,-0.009057053,0.990983839
+"Set 3 (Large, Imbalanced)",country_Bulgaria,-0.000652584,0.999347629
+"Set 3 (Large, Imbalanced)",country_Croatia,-0.005508234,0.994506908
+"Set 3 (Large, Imbalanced)",country_Cyprus,-1.45E-05,0.999985524
+"Set 3 (Large, Imbalanced)",country_Czech Republic,0.022062418,1.022307593
+"Set 3 (Large, Imbalanced)",country_Denmark,-0.009898488,0.990150341
+"Set 3 (Large, Imbalanced)",country_Estonia,0.025287037,1.025609466
+"Set 3 (Large, Imbalanced)",country_Finland,0.020373032,1.020581979
+"Set 3 (Large, Imbalanced)",country_France,-0.03055091,0.969911053
+"Set 3 (Large, Imbalanced)",country_Germany,-0.009482423,0.990562393
+"Set 3 (Large, Imbalanced)",country_Greece,-0.001449081,0.998551969
+"Set 3 (Large, Imbalanced)",country_Hungary,-0.011029585,0.989031017
+"Set 3 (Large, Imbalanced)",country_Ireland,-0.005907386,0.994110028
+"Set 3 (Large, Imbalanced)",country_Italy,-0.022981246,0.977280812
+"Set 3 (Large, Imbalanced)",country_Latvia,0.013580755,1.013673392
+"Set 3 (Large, Imbalanced)",country_Lithuania,-0.002398869,0.997604006
+"Set 3 (Large, Imbalanced)",country_Luxembourg,0.017317619,1.017468438
+"Set 3 (Large, Imbalanced)",country_Malta,0.019425392,1.019615293
+"Set 3 (Large, Imbalanced)",country_Netherlands,0.00309187,1.003096654
+"Set 3 (Large, Imbalanced)",country_Poland,0.003631496,1.003638098
+"Set 3 (Large, Imbalanced)",country_Portugal,0.01570404,1.015827996
+"Set 3 (Large, Imbalanced)",country_Romania,0.012836077,1.012918813
+"Set 3 (Large, Imbalanced)",country_Slovakia,-0.020265994,0.979937981
+"Set 3 (Large, Imbalanced)",country_Slovenia,0.008396849,1.008432202
+"Set 3 (Large, Imbalanced)",country_Spain,0.015332158,1.015450298
+"Set 3 (Large, Imbalanced)",country_Sweden,-0.037879819,0.962828647
+"Set 3 (Large, Imbalanced)",cancer_stage_Stage II,0.016848013,1.016990741
+"Set 3 (Large, Imbalanced)",cancer_stage_Stage III,0.01865218,1.018827219
+"Set 3 (Large, Imbalanced)",cancer_stage_Stage IV,0.017627326,1.017783604
+"Set 3 (Large, Imbalanced)",family_history_Yes,0.007778903,1.007809237
+"Set 3 (Large, Imbalanced)",smoking_status_Former Smoker,-0.007881002,0.992149972
+"Set 3 (Large, Imbalanced)",smoking_status_Never Smoked,-0.00259905,0.997404325
+"Set 3 (Large, Imbalanced)",smoking_status_Passive Smoker,-0.001488858,0.99851225
+"Set 3 (Large, Imbalanced)",treatment_type_Combined,0.009448265,1.009493041
+"Set 3 (Large, Imbalanced)",treatment_type_Radiation,0.008846622,1.008885869
+"Set 3 (Large, Imbalanced)",treatment_type_Surgery,0.01475074,1.014860069

@@ -1,0 +1,19 @@
+[theme]
+# สีหลักสำหรับปุ่ม, Slider, และส่วนที่เน้น (สีน้ำเงินเข้มแบบมืออาชีพ)
+primaryColor = "#1E3A8A"
+
+# สีพื้นหลังหลักของหน้าเว็บ (สีขาวสะอาด)
+backgroundColor = "#FFFFFF"
+
+# สีพื้นหลังของ Sidebar และกล่องข้อความ (สีเทาอมฟ้าอ่อนๆ เพื่อให้ดูมีมิติ)
+secondaryBackgroundColor = "#F0F4F8"
+
+# สีของตัวอักษรทั่วไป (สีเทาเข้มเกือบดำ เพื่อให้อ่านง่ายบนพื้นขาว)
+textColor = "#1E293B"
+
+# ใช้ฟอนต์แบบไม่มีเชิง เพื่อความทันสมัย
+font = "sans serif"
+
+# ไฟล์ .streamlit/config.toml
+[client]
+showSidebarNavigation = false
