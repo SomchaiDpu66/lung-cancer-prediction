@@ -117,15 +117,23 @@ with tab1:
 
         if submitted:
             payload = {
-                "pta_idcard": st.session_state.get('id_card', '0000000000000'),
-                "age": int(age), "gender": int(gender_val),
-                "smoking": 2 if smoking else 1, "yellow_fingers": 2 if yellow_fingers else 1,
-                "anxiety": 2 if anxiety else 1, "peer_pressure": 2 if peer_pressure else 1,
-                "chronic_disease": 2 if chronic_disease else 1, "fatigue": 2 if fatigue else 1,
-                "allergy": 2 if allergy else 1, "wheezing": 2 if wheezing else 1,
-                "alcohol_consuming": 2 if alcohol_consuming else 1, "coughing": 2 if coughing else 1,
+                # เปลี่ยน key เป็น pta_username และดึงค่า username จาก session
+                "pta_username": st.session_state.get('username', 'guest_user'),
+                "age": int(age),
+                "gender": int(gender_val),
+                "smoking": 2 if smoking else 1,
+                "yellow_fingers": 2 if yellow_fingers else 1,
+                "anxiety": 2 if anxiety else 1,
+                "peer_pressure": 2 if peer_pressure else 1,
+                "chronic_disease": 2 if chronic_disease else 1,
+                "fatigue": 2 if fatigue else 1,
+                "allergy": 2 if allergy else 1,
+                "wheezing": 2 if wheezing else 1,
+                "alcohol_consuming": 2 if alcohol_consuming else 1,
+                "coughing": 2 if coughing else 1,
                 "shortness_of_breath": 2 if shortness_of_breath else 1,
-                "swallowing_difficulty": 2 if swallowing_difficulty else 1, "chest_pain": 2 if chest_pain else 1
+                "swallowing_difficulty": 2 if swallowing_difficulty else 1,
+                "chest_pain": 2 if chest_pain else 1
             }
             st.session_state['current_payload'] = payload
 
@@ -343,9 +351,13 @@ with tab2:
     chart_title_suffix = "<span style='color: #10B981;'>(ข้อมูลรอบปัจจุบัน)</span>"
 
     try:
-        user_id = st.session_state.get('id_card')
+        # เปลี่ยนจาก id_card เป็น username
+        user_id = st.session_state.get('username')
         history_res = requests.get(
-            f"https://lung-cancer-prediction-production.up.railway.app/history/{user_id}", timeout=5)
+            # ปรับ Path ให้ตรงกับ API ใหม่
+            f"https://lung-cancer-prediction-production.up.railway.app/user/user/{user_id}",
+            timeout=5
+        )
 
         if history_res.status_code == 200:
             history_data = history_res.json()

@@ -195,37 +195,33 @@ def get_users():
 @app.post("/user/users", tags=["User"])
 def create_user(user_data: User):
     with Session(engine) as session:
-        existing_user = session.get(User, user_data.pta_idcard)
+        # 1. เช็คว่ามี Username นี้หรือยัง
+        existing_user = session.get(User, user_data.pta_username)
         if existing_user:
             raise HTTPException(
-                status_code=400, detail="รหัสบัตรประชาชนนี้เคยลงทะเบียนแล้ว")
-        user_data.username = user_data.pta_idcard
+                status_code=400, detail="ชื่อผู้ใช้งานนี้เคยลงทะเบียนแล้ว")
+
+        # 2. บันทึกข้อมูล (ไม่ต้องยุ่งกับ pta_idcard แล้ว)
         session.add(user_data)
         session.commit()
         session.refresh(user_data)
         return user_data
 
 
-@app.get("/user/users/p", tags=["User"])
-def get_users_with_pagination(skip: int = 0, limit: int = 10):
+@app.get("/user/user/{username}", tags=["User"])
+def get_user(username: str):
     with Session(engine) as session:
-        users = session.exec(select(User).offset(skip).limit(limit)).all()
-        return users
-
-
-@app.get("/user/user/{user_id}", tags=["User"])
-def get_user(user_id: str):
-    with Session(engine) as session:
-        user = session.get(User, user_id)
+        # เปลี่ยนจาก user_id เป็น username ให้สอดคล้องกับ Primary Key
+        user = session.get(User, username)
         if not user:
             raise HTTPException(status_code=404, detail="ไม่พบข้อมูลผู้ใช้งาน")
         return user
 
 
-@app.put("/user/user/{user_id}", tags=["User"])
-def update_user(user_id: str, user_update: UserUpdate):
+@app.put("/user/user/{username}", tags=["User"])
+def update_user(username: str, user_update: UserUpdate):
     with Session(engine) as session:
-        db_user = session.get(User, user_id)
+        db_user = session.get(User, username)
         if not db_user:
             raise HTTPException(status_code=404, detail="ไม่พบข้อมูลผู้ใช้งาน")
         user_data = user_update.dict(exclude_unset=True)
@@ -237,27 +233,33 @@ def update_user(user_id: str, user_update: UserUpdate):
         return db_user
 
 
-@app.delete("/user/user/{user_id}", tags=["User"])
-def delete_user(user_id: str):
+@app.delete("/user/user/{username}", tags=["User"])
+def delete_user(username: str):
     with Session(engine) as session:
-        user = session.get(User, user_id)
+        user = session.get(User, username)
         if not user:
             raise HTTPException(status_code=404, detail="ไม่พบข้อมูลผู้ใช้งาน")
         session.delete(user)
         session.commit()
-        return {"status": "success", "message": f"ลบผู้ใช้งาน {user_id} สำเร็จ"}
+        return {"status": "success", "message": f"ลบผู้ใช้งาน {username} สำเร็จ"}
 
 
 @app.post("/user/login", tags=["User"])
 def login_user(username: str, password: str):
     with Session(engine) as session:
+        # ค้นหาด้วย pta_username (เพราะเราใช้ตัวนี้เป็น Primary Key)
         statement = select(User).where(
-            User.username == username, User.password == password)
+            User.pta_username == username, User.password == password)
         user = session.exec(statement).first()
         if not user:
             raise HTTPException(
                 status_code=401, detail="ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง")
-        return {"status": "success", "full_name": f"{user.pta_firstname} {user.pta_lastname}", "id_card": user.pta_idcard}
+
+        return {
+            "status": "success",
+            "full_name": f"{user.pta_firstname} {user.pta_lastname}",
+            "username": user.pta_username  # ส่ง username กลับแทน id_card
+        }
 
 
 @app.post("/user/upload_image", tags=["User"])
