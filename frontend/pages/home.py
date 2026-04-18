@@ -351,20 +351,28 @@ with tab2:
     chart_title_suffix = "<span style='color: #10B981;'>(ข้อมูลรอบปัจจุบัน)</span>"
 
     try:
-        # เปลี่ยนจาก id_card เป็น username
+        # 1. ดึงชื่อผู้ใช้งานจาก Session
         user_id = st.session_state.get('username')
+
+        # 2. ปรับ Path ให้ชี้ไปที่ /history/{username} ตามที่ตั้งไว้ใน main.py ส่วนที่ 6
+        # หมายเหตุ: ตรวจสอบใน main.py ว่าใช้ @app.get("/history/{username}") หรือไม่
         history_res = requests.get(
-            # ปรับ Path ให้ตรงกับ API ใหม่
-            f"https://lung-cancer-prediction-production.up.railway.app/user/user/{user_id}",
+            f"https://lung-cancer-prediction-production.up.railway.app/history/{user_id}",
             timeout=5
         )
 
         if history_res.status_code == 200:
             history_data = history_res.json()
-            if len(history_data) > 0:
-                df_hist = pd.DataFrame(history_data)
-                df_hist['created_at'] = pd.to_datetime(df_hist['created_at'])
 
+            # ตรวจสอบว่ามีข้อมูลประวัติจริงหรือไม่
+            if history_data and len(history_data) > 0:
+                df_hist = pd.DataFrame(history_data)
+
+                # แปลงเวลาให้ถูกต้องและเรียงลำดับจากเก่าไปใหม่สำหรับวาดกราฟ
+                df_hist['created_at'] = pd.to_datetime(df_hist['created_at'])
+                df_hist = df_hist.sort_values('created_at')
+
+                # สร้างกราฟเส้นด้วย Plotly
                 fig_line = px.line(
                     df_hist, x='created_at', y='risk_score', markers=True,
                     labels={'created_at': 'วันที่ตรวจ',
@@ -373,19 +381,28 @@ with tab2:
                 )
                 fig_line.update_traces(
                     line_color='#3B82F6', marker=dict(size=12))
-                fig_line.update_layout(height=350, margin=dict(t=20, b=20))
+                fig_line.update_layout(
+                    height=350,
+                    margin=dict(t=20, b=20),
+                    hovermode="x unified"
+                )
 
+                # แสดงกราฟและรองรับการคลิกเลือกจุด (Selection)
                 event = st.plotly_chart(fig_line, use_container_width=True,
                                         on_select="rerun", selection_mode="points", key="hist_chart")
 
+                # ส่วนจัดการเมื่อผู้ใช้คลิกเลือกจุดบนกราฟเพื่อดูรายละเอียดเก่า
                 if event and hasattr(event, "selection") and event.selection.points:
                     pt = event.selection.points[0]
+                    # รองรับทั้ง Plotly version เก่าและใหม่
                     pt_index = pt.get("point_index", pt.get("pointIndex"))
 
                     if pt_index is not None:
+                        # ดึงข้อมูลจาก DataFrame ตาม index ที่เลือก
                         row_data = df_hist.iloc[pt_index]
                         try:
                             features_str = row_data.get('features_data', '{}')
+                            # ป้องกันกรณีข้อมูลเป็นค่าว่างหรือ NaN
                             if pd.isna(features_str) or not features_str:
                                 features_str = '{}'
 
@@ -397,15 +414,20 @@ with tab2:
                             chart_title_suffix = f"<span style='color: #E11D48;'>(ประวัติเมื่อ: {date_str})</span>"
                         except Exception:
                             st.warning(
-                                "⚠️ ข้อมูลในวันดังกล่าวเป็นข้อมูลเก่าที่ยังไม่มีการบันทึกอาการ")
+                                "⚠️ ข้อมูลในวันดังกล่าวเป็นข้อมูลรูปแบบเก่า ไม่สามารถดึงรายละเอียดอาการได้")
                             selected_payload = {}
             else:
-                st.write("📭 ยังไม่มีข้อมูลประวัติการทำนายในระบบ")
+                st.info(
+                    "📭 ยังไม่มีข้อมูลประวัติการทำนายในระบบ เริ่มต้นประเมินผลได้ที่แถบด้านบน")
         else:
+            # แจ้ง Error ให้ชัดเจนขึ้นว่าติดที่ status code ไหน
             st.error(
                 f"❌ ไม่สามารถดึงข้อมูลได้ (Status Code: {history_res.status_code})")
+
     except Exception as e:
-        st.error(f"⚠️ ขัดข้องในการเชื่อมต่อฐานข้อมูล")
+        # แสดง Error จริงในเครื่องมือ Debug แต่โชว์ข้อความสุภาพให้ผู้ใช้
+        print(f"Debug Log: {str(e)}")
+        st.error(f"⚠️ ขัดข้องในการเชื่อมต่อฐานข้อมูลประวัติ")
 
     if selected_payload is not None and len(selected_payload) > 0:
         st.divider()
