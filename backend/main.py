@@ -63,11 +63,17 @@ else:
     engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 # 6. โหลด Model (ใช้ BASE_DIR ที่ประกาศไว้บรรทัดแรก)
-model_path = os.path.join(BASE_DIR, "best_model.pkl")
-if os.path.exists(model_path):
-    model = joblib.load(model_path)
-else:
-    print(f"⚠️ Warning: Model file not found at {model_path}")
+try:
+    model_path = os.path.join(BASE_DIR, "best_model.pkl")
+    if os.path.exists(model_path):
+        model = joblib.load(model_path)
+        print("✅ Model loaded successfully!")
+    else:
+        print(f"❌ Error: Model file NOT FOUND at {model_path}")
+        model = None  # ป้องกันแอปพัง แต่จะทำนายไม่ได้
+except Exception as e:
+    print(f"❌ Error loading model: {e}")
+    model = None
 
 # --- ปัจจัยเสี่ยง 3 ระดับ ---
 RISK_FACTORS_DB = {
