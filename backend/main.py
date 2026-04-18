@@ -279,6 +279,7 @@ async def upload_image(file: UploadFile = File(...)):
 @app.post("/predict", tags=["Prediction & History"])
 async def predict(data: PredictionInput):
     try:
+        # --- [โค้ดส่วนคำนวณเดิมของ Kean - ห้ามแก้ไข] ---
         user_input = {
             "smoking": data.smoking,
             "breathing_issue": data.shortness_of_breath,
@@ -334,19 +335,26 @@ async def predict(data: PredictionInput):
             top_feature, top_or, top_level = "ไม่พบปัจจัยเสี่ยงชัดเจน", 1.0, "ปกติ"
             thai_detail = "ไม่พบปัจจัยเสี่ยงหลักที่มีนัยสำคัญทางสถิติ"
 
-        features_json_str = json.dumps(data.dict())
+        # --- [จุดที่ปรับปรุงเพื่อแก้ Error] ---
+
+        # 1. บังคับดึงค่า username ออกมาให้ชัดเจนก่อนสร้าง Object
+        current_username = str(
+            data.pta_username) if data.pta_username else "unknown_user"
+
+        # 2. แปลงข้อมูล input เป็น JSON String
+        features_json_str = json.dumps(data.dict(), ensure_ascii=False)
 
         with Session(engine) as session:
+            # สร้าง Object โดยระบุค่าที่ดึงออกมาแล้ว
             new_history = PredictionHistory(
-                # แก้จาก pta_idcard เป็น pta_username
-                pta_username=data.pta_username,
-                risk_score=risk_percentage,
-                prediction_result=prediction_result,
+                pta_username=current_username,  # มั่นใจว่าไม่ใช่ None แน่นอน
+                risk_score=float(risk_percentage),
+                prediction_result=str(prediction_result),
                 features_data=features_json_str
             )
             session.add(new_history)
             session.commit()
-            session.refresh(new_history)
+            # session.refresh(new_history) # ปิดไว้ก่อนถ้าไม่ได้ใช้ต่อ เพื่อลดโอกาส Error ตอน commit
 
         return {
             "prediction": prediction_result,
@@ -359,8 +367,10 @@ async def predict(data: PredictionInput):
             }
         }
     except Exception as e:
+        import traceback
         traceback.print_exc()
-        return JSONResponse(status_code=400, content={"message": str(e)})
+        # ส่ง Error กลับไปให้หน้าบ้านเห็นชัดๆ ว่าติดตรงไหน
+        return JSONResponse(status_code=400, content={"message": f"Backend Error: {str(e)}"})
 
 
 @app.get("/history/{username}", tags=["Prediction & History"])
