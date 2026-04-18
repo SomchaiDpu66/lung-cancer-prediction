@@ -338,13 +338,15 @@ async def predict(data: PredictionInput):
 
         with Session(engine) as session:
             new_history = PredictionHistory(
-                pta_idcard=data.pta_username,
+                # แก้จาก pta_idcard เป็น pta_username
+                pta_username=data.pta_username,
                 risk_score=risk_percentage,
                 prediction_result=prediction_result,
                 features_data=features_json_str
             )
             session.add(new_history)
             session.commit()
+            session.refresh(new_history)
 
         return {
             "prediction": prediction_result,
@@ -361,11 +363,14 @@ async def predict(data: PredictionInput):
         return JSONResponse(status_code=400, content={"message": str(e)})
 
 
-@app.get("/history/{id_card}", tags=["Prediction & History"])
-def get_user_history(id_card: str):
+@app.get("/history/{username}", tags=["Prediction & History"])
+def get_user_history(username: str):
     with Session(engine) as session:
         statement = select(PredictionHistory).where(
-            PredictionHistory.pta_username == id_card).order_by(PredictionHistory.created_at.desc())
+            # ตรงนี้ถูกต้องแล้วครับ คือเช็คจาก pta_username ในตาราง
+            PredictionHistory.pta_username == username
+        ).order_by(PredictionHistory.created_at.desc())
+
         results = session.exec(statement).all()
         return results
 
