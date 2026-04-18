@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel, create_engine, Session, select
+from sqlalchemy import create_engine
 
 # ==========================================
 # ส่วนที่ 1: สร้าง Application Instance
@@ -37,23 +38,26 @@ app.add_middleware(
 # ==========================================
 # ส่วนที่ 3: การตั้งค่าพื้นฐาน (Global Config) & โหลด Model
 # ==========================================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "lung_cancer.db")
-# sqlite_url = f"sqlite:///{DB_PATH}"
-# engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
 
+# 1. พยายามดึงค่าจากระบบ Railway ก่อน (วิธีที่ปลอดภัยที่สุด)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# DB_PATH = os.path.join(BASE_DIR, "lung_cancer.db")
-# sqlite_url = f"sqlite:///{DB_PATH}"
-# engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
+# 2. ตรวจสอบว่าถ้าเป็น PostgreSQL ของ Railway ต้องขึ้นต้นด้วย postgresql:// (ไม่ใช่ postgres://)
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# --- โค้ดใหม่สำหรับเชื่อมต่อ Railway PostgreSQL ---
-# (อย่าลืมเปลี่ยนตรง DATABASE_URL เป็นลิงก์ที่คุณก๊อปปี้มาจากหน้าเว็บ Railway นะครับ)
-DATABASE_URL = "postgresql://postgres:รหัสผ่านยาวๆ@junction.proxy.rlwy.net:12345/railway"
+# 3. กรณีที่รันในเครื่องตัวเอง (Local) แล้วหา DATABASE_URL ไม่เจอ ให้ถอยกลับไปใช้ SQLite
+if not DATABASE_URL:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    DB_PATH = os.path.join(BASE_DIR, "lung_cancer.db")
+    DATABASE_URL = f"sqlite:///{DB_PATH}"
 
-# สร้าง Engine ใหม่ (สังเกตว่าไม่มี connect_args แล้ว)
-engine = create_engine(DATABASE_URL)
+# สร้าง Engine (ถ้าเป็น SQLite ต้องมี connect_args แต่ถ้าเป็น Postgres ไม่ต้องมี)
+if "sqlite" in DATABASE_URL:
+    engine = create_engine(DATABASE_URL, connect_args={
+                           "check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
 
 
 # โหลด Model เตรียมไว้
