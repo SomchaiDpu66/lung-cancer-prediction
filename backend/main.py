@@ -39,29 +39,35 @@ app.add_middleware(
 # ส่วนที่ 3: การตั้งค่าพื้นฐาน (Global Config) & โหลด Model
 # ==========================================
 
-# 1. พยายามดึงค่าจากระบบ Railway ก่อน (วิธีที่ปลอดภัยที่สุด)
+# 1. กำหนด BASE_DIR ไว้ด้านนอกสุดเพื่อให้ทุกส่วนเรียกใช้ได้
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 2. พยายามดึงค่าจากระบบ Railway
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# 2. ตรวจสอบว่าถ้าเป็น PostgreSQL ของ Railway ต้องขึ้นต้นด้วย postgresql:// (ไม่ใช่ postgres://)
+# 3. แก้ไข Prefix สำหรับ PostgreSQL
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# 3. กรณีที่รันในเครื่องตัวเอง (Local) แล้วหา DATABASE_URL ไม่เจอ ให้ถอยกลับไปใช้ SQLite
+# 4. ถ้าไม่มี DATABASE_URL (รันในเครื่อง) ให้ใช้ SQLite
 if not DATABASE_URL:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DB_PATH = os.path.join(BASE_DIR, "lung_cancer.db")
     DATABASE_URL = f"sqlite:///{DB_PATH}"
 
-# สร้าง Engine (ถ้าเป็น SQLite ต้องมี connect_args แต่ถ้าเป็น Postgres ไม่ต้องมี)
+# 5. สร้าง Engine
 if "sqlite" in DATABASE_URL:
     engine = create_engine(DATABASE_URL, connect_args={
                            "check_same_thread": False})
 else:
-    engine = create_engine(DATABASE_URL)
+    # เพิ่ม pool_pre_ping=True เพื่อช่วยรักษาการเชื่อมต่อกับ Railway ให้เสถียรขึ้น
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
-
-# โหลด Model เตรียมไว้
-model = joblib.load(os.path.join(BASE_DIR, "best_model.pkl"))
+# 6. โหลด Model (ใช้ BASE_DIR ที่ประกาศไว้บรรทัดแรก)
+model_path = os.path.join(BASE_DIR, "best_model.pkl")
+if os.path.exists(model_path):
+    model = joblib.load(model_path)
+else:
+    print(f"⚠️ Warning: Model file not found at {model_path}")
 
 # --- ปัจจัยเสี่ยง 3 ระดับ ---
 RISK_FACTORS_DB = {
@@ -81,7 +87,7 @@ RISK_FACTORS_DB = {
 
 
 class User(SQLModel, table=True):
-    pta_idcard: str = Field(primary_key=True, index=True)
+    pta_username: str = Field(primary_key=True, index=True)
     pta_firstname: str
     pta_lastname: str
     pta_address_number: str
@@ -100,7 +106,7 @@ class User(SQLModel, table=True):
 
 class PredictionHistory(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    pta_idcard: str = Field(foreign_key="user.pta_idcard", index=True)
+    pta_username: str = Field(foreign_key="user.pta_idcard", index=True)
     risk_score: float
     prediction_result: str
     features_data: str = Field(default="{}")
@@ -317,7 +323,7 @@ async def predict(data: PredictionInput):
 
         with Session(engine) as session:
             new_history = PredictionHistory(
-                pta_idcard=data.pta_idcard,
+                pta_idcard=data.pta_username,
                 risk_score=risk_percentage,
                 prediction_result=prediction_result,
                 features_data=features_json_str
@@ -344,7 +350,7 @@ async def predict(data: PredictionInput):
 def get_user_history(id_card: str):
     with Session(engine) as session:
         statement = select(PredictionHistory).where(
-            PredictionHistory.pta_idcard == id_card).order_by(PredictionHistory.created_at.desc())
+            PredictionHistory.pta_username == id_card).order_by(PredictionHistory.created_at.desc())
         results = session.exec(statement).all()
         return results
 
