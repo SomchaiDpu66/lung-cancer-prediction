@@ -4,6 +4,8 @@ import pandas as pd
 from menu import show_sidebar, show_cookie_banner
 
 st.set_page_config(page_title="ประวัติการใช้งาน", layout="wide")
+
+# เรียกใช้ sidebar ที่เราปรับปรุงโชว์รูปโปรไฟล์แล้ว
 show_sidebar()
 show_cookie_banner()
 
@@ -12,12 +14,17 @@ if not st.session_state.get('logged_in'):
 
 st.title("📜 ประวัติการบันทึกข้อมูลของคุณ")
 
-user_id = st.session_state['id_card']
+# --- [แก้ไขจุดที่ 1: เปลี่ยนจาก id_card เป็น username] ---
+user_id = st.session_state.get('username')
 
-# 1. ยิง API ไปขอดึงประวัติของ user_id นี้
+# 1. ยิง API ไปขอดึงประวัติของ username นี้
 try:
+    # --- [แก้ไขจุดที่ 2: ตรวจสอบ URL ให้ตรงกับ Backend ใหม่] ---
+    # มั่นใจว่า API ที่ Backend ใช้ Path: /history/{username}
     res = requests.get(
-        f"https://lung-cancer-prediction-production.up.railway.app/history/{user_id}")
+        f"https://lung-cancer-prediction-production.up.railway.app/history/{user_id}",
+        timeout=5
+    )
 
     if res.status_code == 200:
         history_data = res.json()
@@ -37,21 +44,29 @@ try:
             df['วัน-เวลาที่ตรวจ'] = pd.to_datetime(
                 df['วัน-เวลาที่ตรวจ']).dt.strftime('%Y-%m-%d %H:%M:%S')
 
-            # 3. สร้าง UI สรุปด้านบน (เหมือนในรูปของคุณ)
+            # 3. สร้าง UI สรุปด้านบน
             col1, col2 = st.columns(2)
             col1.metric("จำนวนการตรวจทั้งหมด", f"{len(df)} ครั้ง")
-            col2.metric("ความเสี่ยงล่าสุด", f"{df.iloc[0]['ความเสี่ยง (%)']}%")
+
+            # ดึงค่าความเสี่ยงล่าสุด (แถวบนสุด)
+            latest_risk = df.iloc[0]['ความเสี่ยง (%)']
+            col2.metric("ความเสี่ยงล่าสุด", f"{latest_risk}%")
 
             st.divider()
 
             # 4. แสดงตาราง
             st.subheader("📋 รายการประวัติย้อนหลัง")
+            # เลือกเฉพาะคอลัมน์ที่ต้องการแสดง
             st.dataframe(df[['วัน-เวลาที่ตรวจ', 'ความเสี่ยง (%)',
                          'ผลประเมินเบื้องต้น']], use_container_width=True)
 
         else:
             st.info(
                 "📅 คุณยังไม่มีประวัติการคัดกรองในระบบ ลองไปประเมินความเสี่ยงที่หน้าหลักดูนะครับ")
+    else:
+        st.error(f"❌ ไม่สามารถดึงข้อมูลได้ (Status Code: {res.status_code})")
 
 except Exception as e:
-    st.error("❌ ไม่สามารถเชื่อมต่อกับฐานข้อมูลประวัติได้")
+    # เพิ่มการแสดง Error เบื้องต้นเพื่อช่วยในการ Debug
+    st.error(f"❌ ไม่สามารถเชื่อมต่อกับฐานข้อมูลประวัติได้")
+    print(f"Debug History Page: {str(e)}")
