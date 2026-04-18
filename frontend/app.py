@@ -138,7 +138,7 @@ with main_col2:
             with r_col1:
                 # ปรับเป็น pta_username
                 pta_username = st.text_input(
-                    "ชื่อผู้ใช้งาน (Username) *", placeholder="ตั้งชื่อผู้ใช้งานภาษาอังกฤษหรือตัวเลข")
+                    "ชื่อผู้ใช้งาน (Username) *", placeholder="ตั้งชื่อผู้ใช้งาน ตัวอักษรหรือตัวเลข")
                 pta_firstname = st.text_input("ชื่อจริง *")
                 pta_email = st.text_input("อีเมล")
                 pta_address_number = st.text_input("บ้านเลขที่/หมู่บ้าน")
