@@ -33,7 +33,7 @@ if 'logged_in' not in st.session_state or not st.session_state.get('logged_in'):
 show_sidebar()
 show_cookie_banner()
 API_URL = os.environ.get(
-    "BACKEND_URL", "https://lung-cancer-api-c1e5.onrender.com")
+    "BACKEND_URL", "https://lung-cancer-prediction-production.up.railway.app")
 USER_ID = st.session_state.get('id_card')
 
 

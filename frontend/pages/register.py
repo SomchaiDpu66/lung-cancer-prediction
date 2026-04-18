@@ -45,7 +45,7 @@ def show_registration():
             }
 
             response = requests.post(
-                "https://lung-cancer-api-c1e5.onrender.com/register", json=payload)
+                "https://lung-cancer-prediction-production.up.railway.app/register", json=payload)
             if response.status_code == 200:
                 st.success("ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ")
             else:

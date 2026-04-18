@@ -9,7 +9,7 @@ import requests
 def get_profile_icon(id_card):
     try:
         API_URL = os.environ.get(
-            "BACKEND_URL", "https://lung-cancer-api-c1e5.onrender.com")
+            "BACKEND_URL", "https://lung-cancer-prediction-production.up.railway.app")
         res = requests.get(f"{API_URL}/user/user/{id_card}", timeout=3)
         if res.status_code == 200:
             data = res.json()

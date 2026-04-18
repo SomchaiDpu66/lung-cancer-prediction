@@ -160,7 +160,7 @@ with main_col2:
                     try:
                         with st.spinner('กำลังตรวจสอบข้อมูล...'):
                             res = requests.post(
-                                f"https://lung-cancer-api-c1e5.onrender.com/user/login?username={user}&password={pw}")
+                                f"https://lung-cancer-prediction-production.up.railway.app/user/login?username={user}&password={pw}")
                             if res.status_code == 200:
                                 data = res.json()
                                 st.session_state['logged_in'] = True
@@ -244,7 +244,7 @@ with main_col2:
                     try:
                         with st.spinner('กำลังสร้างบัญชีผู้ใช้งาน...'):
                             res = requests.post(
-                                "https://lung-cancer-api-c1e5.onrender.com/user/users", json=payload)
+                                "https://lung-cancer-prediction-production.up.railway.app/user/users", json=payload)
 
                             if res.status_code == 200:
                                 st.success(
