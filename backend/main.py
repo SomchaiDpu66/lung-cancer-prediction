@@ -62,18 +62,21 @@ else:
     # เพิ่ม pool_pre_ping=True เพื่อช่วยรักษาการเชื่อมต่อกับ Railway ให้เสถียรขึ้น
     engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
-# 6. โหลด Model (ใช้ BASE_DIR ที่ประกาศไว้บรรทัดแรก)
-try:
-    model_path = os.path.join(BASE_DIR, "best_model.pkl")
-    if os.path.exists(model_path):
-        model = joblib.load(model_path)
-        print("✅ Model loaded successfully!")
+# ตรวจสอบว่าไฟล์ Model อยู่ที่ไหนกันแน่
+# ถ้า main.py อยู่ใน backend/ และ best_model.pkl อยู่ที่เดียวกัน
+model_path = os.path.join(BASE_DIR, "best_model.pkl")
+
+if os.path.exists(model_path):
+    model = joblib.load(model_path)
+    print("✅ Model loaded!")
+else:
+    # ลองหาอีกที่ เผื่อไฟล์อยู่นอกโฟลเดอร์ backend
+    alt_path = os.path.join(os.getcwd(), "best_model.pkl")
+    if os.path.exists(alt_path):
+        model = joblib.load(alt_path)
+        print("✅ Model loaded from root!")
     else:
-        print(f"❌ Error: Model file NOT FOUND at {model_path}")
-        model = None  # ป้องกันแอปพัง แต่จะทำนายไม่ได้
-except Exception as e:
-    print(f"❌ Error loading model: {e}")
-    model = None
+        print("❌ CRITICAL: model file not found!")
 
 # --- ปัจจัยเสี่ยง 3 ระดับ ---
 RISK_FACTORS_DB = {
@@ -93,6 +96,7 @@ RISK_FACTORS_DB = {
 
 
 class User(SQLModel, table=True):
+    # ใช้ pta_username เป็น Primary Key ตามที่เราตกลงกัน
     pta_username: str = Field(primary_key=True, index=True)
     pta_firstname: str
     pta_lastname: str
@@ -106,13 +110,14 @@ class User(SQLModel, table=True):
     zipcode: str
     ptd_id: str
     crt_date: datetime = Field(default_factory=datetime.now)
-    username: Optional[str] = Field(default=None, index=True)
+    # ลบตัวแปร username: Optional[str] ซ้ำซ้อนออกไปแล้วครับ
     password: str
 
 
 class PredictionHistory(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    pta_username: str = Field(foreign_key="user.pta_idcard", index=True)
+    # แก้ไขเชื่อมโยงไปที่ pta_username ให้ถูกต้อง
+    pta_username: str = Field(foreign_key="user.pta_username", index=True)
     risk_score: float
     prediction_result: str
     features_data: str = Field(default="{}")
@@ -120,7 +125,7 @@ class PredictionHistory(SQLModel, table=True):
 
 
 class PredictionInput(BaseModel):
-    pta_idcard: str
+    pta_username: str  # ตรวจสอบให้แน่ใจว่าในแอปส่งชื่อนี้มา
     age: int
     gender: int
     smoking: int
@@ -136,6 +141,8 @@ class PredictionInput(BaseModel):
     shortness_of_breath: int
     swallowing_difficulty: int
     chest_pain: int
+
+# ส่วนของ UserUpdate คงเดิม (ถูกต้องแล้ว)
 
 
 class UserUpdate(BaseModel):
