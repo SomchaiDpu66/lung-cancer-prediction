@@ -112,9 +112,14 @@ with main_col2:
                             if res.status_code == 200:
                                 data = res.json()
                                 st.session_state['logged_in'] = True
-                                st.session_state['full_name'] = data['full_name']
-                                st.session_state['username'] = data.get(
-                                    'username', user)  # เก็บ username แทน id_card
+                                st.session_state['full_name'] = data.get(
+                                    'full_name')
+
+                                # บังคับเก็บค่า username จาก data ที่ API ส่งกลับมา
+                                # หรือถ้า API ไม่ได้ส่งมา ให้ใช้ตัวแปร user จากช่องกรอกข้อมูล
+                                current_user = data.get('username') or user
+                                st.session_state['username'] = current_user
+
                                 st.success(
                                     "เข้าสู่ระบบสำเร็จ! กำลังพาท่านเข้าสู่หน้าหลัก...")
                                 import time

@@ -6,22 +6,35 @@ import requests
 
 
 @st.cache_data(ttl=10)
-def get_profile_icon(id_card):
+def get_profile_icon(username):  # เปลี่ยนชื่อ parameter ให้สื่อความหมาย
+    if not username:
+        return None
+
     try:
+        # ดึง URL จาก Environment หรือใช้ค่า Default ของ Railway
         API_URL = os.environ.get(
             "BACKEND_URL", "https://lung-cancer-prediction-production.up.railway.app")
-        res = requests.get(f"{API_URL}/user/user/{id_card}", timeout=3)
+
+        # เรียกไปยัง Endpoint ใหม่ที่เราแก้ใน main.py (/user/user/{username})
+        res = requests.get(f"{API_URL}/user/user/{username}", timeout=5)
+
         if res.status_code == 200:
             data = res.json()
             img = data.get('pta_img')
+
+            # ตรวจสอบว่ามีรูปภาพหรือไม่
             if img and img != '-':
-                # เช็คว่าเป็นลิงก์เว็บเก่า หรือไฟล์อัปโหลดใหม่
+                # กรณีที่ 1: เป็น URL เต็มรูปแบบ (เช่นจาก Google หรือเว็บอื่น)
                 if str(img).startswith('http'):
                     return img
+                # กรณีที่ 2: เป็นชื่อไฟล์ที่อัปโหลดไว้ในเซิร์ฟเวอร์
                 else:
                     return f"{API_URL}/uploads/{img}"
-    except:
+    except Exception as e:
+        # พิมพ์ Error ลงใน Console เพื่อการตรวจสอบ (ไม่แสดงบนหน้าเว็บ)
+        print(f"Debug: Profile icon load failed for {username} - {e}")
         pass
+
     return None
 
 
@@ -37,22 +50,35 @@ def show_sidebar():
             st.markdown(
                 "<h3 style='margin-top: 5px; color: #1E3A8A; font-weight: 600;'>LungGuard AI</h3>", unsafe_allow_html=True)
 
-        # 🌟 จัดการรูปไอคอนผู้ใช้งาน
-        user_id = st.session_state.get('id_card')
-        # ค่าเริ่มต้นถ้าไม่มีรูป
-        img_html = "<span style='font-size: 18px; margin-right: 5px;'>👤</span>"
+        # ==========================================
+        # 🌟 จัดการรูปไอคอนผู้ใช้งาน (Visual Identity & UX)
+        # ==========================================
+        # แก้ไขจุดที่ 1: เปลี่ยนจาก id_card เป็น username เพื่อดึงข้อมูลให้ถูกต้อง
+        current_user = st.session_state.get('username')
 
-        if user_id:
-            img_url = get_profile_icon(user_id)
+        # ค่าเริ่มต้นถ้าไม่มีรูป (Fallback Icon)
+        img_html = "<span style='font-size: 22px; margin-right: 10px;'>👤</span>"
+
+        if current_user:
+            # เรียกใช้ฟังก์ชันที่ปรับปรุงใหม่ (ใช้ username ในการดึงรูป)
+            img_url = get_profile_icon(current_user)
             if img_url:
-                # ถ้ามีรูป ให้สร้าง Tag รูปภาพแบบวงกลม (Avatar)
-                img_html = f"<img src='{img_url}' style='width: 26px; height: 26px; border-radius: 50%; object-fit: cover; border: 1.5px solid #3B82F6; margin-right: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>"
+                # ถ้ามีรูป ให้สร้าง Tag รูปภาพแบบวงกลมพร้อมเงาและขอบ (Modern Avatar)
+                img_html = f"""
+                    <img src='{img_url}' 
+                    style='width: 35px; height: 35px; border-radius: 50%; object-fit: cover; 
+                    border: 2px solid #3B82F6; margin-right: 10px; 
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);'>
+                """
 
-        # แสดงรูปภาพคู่กับชื่อผู้ใช้งาน (ใช้ Flexbox เพื่อให้กึ่งกลางพอดีเป๊ะ)
+        # แสดงรูปภาพคู่กับชื่อผู้ใช้งาน (เพิ่มความสวยงามและชื่อล็อกอิน)
         st.markdown(f"""
-            <div style='color: #64748B; font-size: 14px; margin-top: -10px; margin-bottom: 10px; display: flex; align-items: center;'>
+            <div style='background-color: #F8FAFC; padding: 10px; border-radius: 10px; border: 1px solid #E2E8F0; margin-bottom: 15px; display: flex; align-items: center;'>
                 {img_html} 
-                <span>ผู้ใช้งาน: <b>{st.session_state.get('full_name', 'แขกผู้เยือน')}</b></span>
+                <div style='display: flex; flex-direction: column;'>
+                    <span style='color: #64748B; font-size: 11px; line-height: 1;'>ลงชื่อเข้าใช้ในชื่อ</span>
+                    <span style='color: #1E293B; font-size: 14px; font-weight: 600;'>{st.session_state.get('full_name', 'แขกผู้เยือน')}</span>
+                </div>
             </div>
         """, unsafe_allow_html=True)
 
@@ -77,11 +103,14 @@ def show_sidebar():
         # ⚙️ 3. การจัดการระบบ (Reset / Logout)
         # ==========================================
         if st.button("🔄 ล้างค่าหน้าจอ (เริ่มใหม่)", use_container_width=True):
-            st.session_state['api_result'] = None
-            st.session_state['current_payload'] = None
-            st.session_state['age_input'] = 45
-            st.session_state['gender_input'] = "ชาย"
+            # เคลียร์ค่าเฉพาะจุด ไม่ให้กระทบ Login Session
+            reset_keys = ['api_result', 'current_payload',
+                          'age_input', 'gender_input']
+            for key in reset_keys:
+                if key in st.session_state:
+                    st.session_state[key] = None
 
+            # เคลียร์ Checkbox
             checkbox_keys = ['chk_smoking', 'chk_alcohol', 'chk_peer', 'chk_chronic', 'chk_fatigue', 'chk_allergy',
                              'chk_swallowing', 'chk_yellow', 'chk_anxiety', 'chk_shortness', 'chk_coughing', 'chk_wheezing', 'chk_chest']
             for key in checkbox_keys:
@@ -91,6 +120,7 @@ def show_sidebar():
         st.write("")
 
         if st.button("🚪 ออกจากระบบ", type="primary", use_container_width=True):
+            # ใช้การเคลียร์เฉพาะข้อมูล User แต่คงสภาพโครงสร้างไว้
             st.session_state.clear()
             st.switch_page("app.py")
 
