@@ -34,7 +34,7 @@ show_sidebar()
 show_cookie_banner()
 API_URL = os.environ.get(
     "BACKEND_URL", "https://lung-cancer-prediction-production.up.railway.app")
-USER_ID = st.session_state.get('id_card')
+USER_ID = st.session_state.get('username')
 
 
 # --- 4. หัวข้อหลัก ---
@@ -53,9 +53,9 @@ st.write("")
 
 
 @st.cache_data(ttl=5)  # ลด Cache ลงเพื่อให้เห็นรูปใหม่ทันทีที่อัปเดต
-def fetch_user_data(id_card):
+def fetch_user_data(username):
     try:
-        res = requests.get(f"{API_URL}/user/user/{id_card}", timeout=5)
+        res = requests.get(f"{API_URL}/user/user/{username}", timeout=5)
         if res.status_code == 200:
             return res.json()
     except:
