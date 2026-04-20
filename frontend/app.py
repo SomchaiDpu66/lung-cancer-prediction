@@ -9,12 +9,14 @@ API_URL = "https://lung-cancer-prediction-production.up.railway.app"
 st.set_page_config(page_title="LungGuard AI - Login", page_icon="🛡️",
                    layout="wide", initial_sidebar_state="collapsed")
 
-# --- 2. Custom CSS (คงเดิมตามต้นฉบับ) ---
+# --- 2. Custom CSS (เพิ่ม Responsive Design สำหรับมือถือ) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap');
     html, body, [class*="css"] { font-family: 'Prompt', sans-serif !important; }
     .stApp { background-color: #E2E8F0; }
+    
+    /* สไตล์สำหรับ Desktop */
     [data-testid="column"]:nth-of-type(1) {
         background: linear-gradient(135deg, #1E3A8A, #3B82F6);
         color: white; padding: 3rem 2rem; border-radius: 24px 0 0 24px;
@@ -25,6 +27,19 @@ st.markdown("""
         background: white; padding: 3rem; border-radius: 0 24px 24px 0;
         box-shadow: 10px 10px 25px rgba(0,0,0,0.1);
     }
+    
+    /* 📱 Responsive Design สำหรับหน้าจอมือถือ (Mobile/Tablet) */
+    @media (max-width: 768px) {
+        [data-testid="column"]:nth-of-type(1) {
+            border-radius: 24px 24px 0 0 !important; /* เปลี่ยนให้ขอบมนด้านบนแทน */
+            padding: 2rem 1.5rem !important;
+        }
+        [data-testid="column"]:nth-of-type(2) {
+            border-radius: 0 0 24px 24px !important; /* เปลี่ยนให้ขอบมนด้านล่าง */
+            padding: 2rem 1.5rem !important;
+        }
+    }
+
     .stTextInput>div>div>input { border-radius: 12px; border: 1.5px solid #E2E8F0; padding: 12px 15px; transition: border-color 0.3s ease; }
     .stTextInput>div>div>input:focus { border-color: #3B82F6; box-shadow: 0 0 0 1px #3B82F6; }
     .stButton>button {
@@ -89,12 +104,11 @@ with main_col1:
 # ฝั่งขวา: Form Area
 # ==========================================
 with main_col2:
-    # ---------------- LOGIN MODE ----------------
+    # ---------------- LOGIN MODE (คงเดิม) ----------------
     if st.session_state['auth_mode'] == 'login':
         st.markdown("<h2>Sign in to your account</h2>", unsafe_allow_html=True)
 
         with st.form("login_form", clear_on_submit=False):
-            # ปรับเป็น Username
             user = st.text_input("ชื่อผู้ใช้งาน (Username)",
                                  placeholder="กรุณากรอกชื่อผู้ใช้งาน")
             pw = st.text_input(
@@ -115,8 +129,6 @@ with main_col2:
                                 st.session_state['full_name'] = data.get(
                                     'full_name')
 
-                                # บังคับเก็บค่า username จาก data ที่ API ส่งกลับมา
-                                # หรือถ้า API ไม่ได้ส่งมา ให้ใช้ตัวแปร user จากช่องกรอกข้อมูล
                                 current_user = data.get('username') or user
                                 st.session_state['username'] = current_user
 
@@ -133,31 +145,23 @@ with main_col2:
                 else:
                     st.warning("กรุณากรอกข้อมูลให้ครบถ้วน")
 
-    # ---------------- REGISTER MODE ----------------
+    # ---------------- REGISTER MODE (ปรับปรุงใหม่ ลดฟิลด์) ----------------
     else:
         st.markdown("<h2>Create your account</h2>", unsafe_allow_html=True)
-        st.write("กรุณากรอกข้อมูลส่วนตัวเพื่อลงทะเบียน")
+        st.write("กรุณากรอกข้อมูลส่วนตัวเพื่อลงทะเบียน (ระยะทดสอบระบบ)")
 
         with st.form("register_form"):
+            # แบ่งเป็น 2 คอลัมน์ให้ดูสวยงามและไม่ยาวเกินไป
             r_col1, r_col2 = st.columns(2)
             with r_col1:
-                # ปรับเป็น pta_username
                 pta_username = st.text_input(
-                    "ชื่อผู้ใช้งาน (Username) *", placeholder="ตั้งชื่อผู้ใช้งาน ตัวอักษรหรือตัวเลข")
+                    "ชื่อผู้ใช้งาน (Username) *", placeholder="ตัวอักษรหรือตัวเลข")
                 pta_firstname = st.text_input("ชื่อจริง *")
-                pta_email = st.text_input("อีเมล")
-                pta_address_number = st.text_input("บ้านเลขที่/หมู่บ้าน")
-                province_code = st.text_input("จังหวัด")
-                district_code = st.text_input("ตำบล/แขวง")
                 password = st.text_input("ตั้งรหัสผ่าน *", type="password")
 
             with r_col2:
-                ptd_id = st.text_input("รหัสอ้างอิง PTD (ถ้ามี)")
+                pta_email = st.text_input("อีเมล")
                 pta_lastname = st.text_input("นามสกุล *")
-                pta_phone = st.text_input("เบอร์โทรศัพท์")
-                amphur_code = st.text_input("อำเภอ/เขต")
-                zipcode = st.text_input("รหัสไปรษณีย์")
-                pta_img = st.text_input("รูปโปรไฟล์ (URL)")
                 password_confirm = st.text_input(
                     "ยืนยันรหัสผ่าน *", type="password")
 
@@ -172,21 +176,23 @@ with main_col2:
                 elif password != password_confirm:
                     st.error("❌ รหัสผ่านไม่ตรงกัน")
                 else:
-                    # จัดเตรียม Payload ส่งให้ API (ใช้ชื่อตัวแปรที่ประกาศไว้ข้างบน)
+                    # จัดเตรียม Payload ส่งให้ API (ฟิลด์ที่ตัดออกไป จะถูกส่งเป็นค่า Default)
                     payload = {
                         "pta_username": pta_username,
                         "pta_firstname": pta_firstname,
                         "pta_lastname": pta_lastname,
-                        "pta_address_number": pta_address_number or "-",
                         "pta_email": pta_email or "-",
-                        "pta_phone": pta_phone or "-",
-                        "pta_img": pta_img or None,
-                        "province_code": province_code or "-",
-                        "amphur_code": amphur_code or "-",
-                        "district_code": district_code or "-",
-                        "zipcode": zipcode or "-",
-                        "ptd_id": ptd_id or "-",
-                        "password": password
+                        "password": password,
+
+                        # --- ข้อมูลที่ซ่อนไว้เพื่อลดภาระผู้ทดสอบ (ยัดค่า Default กัน API Error) ---
+                        "pta_address_number": "-",
+                        "pta_phone": "-",
+                        "pta_img": None,
+                        "province_code": "-",
+                        "amphur_code": "-",
+                        "district_code": "-",
+                        "zipcode": "-",
+                        "ptd_id": "-"
                     }
 
                     try:
