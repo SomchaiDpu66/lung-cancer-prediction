@@ -107,26 +107,20 @@ with main_col1:
     st.markdown("<h1 style='margin-top: 10px; margin-bottom: 5px;'>LungGuard AI</h1>",
                 unsafe_allow_html=True)
 
-    # ---------------- LOGIN MODE ----------------
+    # --- โหมด 1: หน้า Login ---
     if st.session_state['auth_mode'] == 'login':
-        st.markdown("<h2>Sign in to your account</h2>", unsafe_allow_html=True)
+        st.markdown("<h3 style='margin-top: 20px;'>Welcome</h3>",
+                    unsafe_allow_html=True)
+        st.write(
+            "เข้าสู่ระบบเพื่อใช้งานระบบวิเคราะห์และพยากรณ์ความเสี่ยงโรคมะเร็งปอดด้วย AI")
+        st.write("---")
+        st.write("ยังไม่มีบัญชีผู้ใช้งานใช่หรือไม่?")
+        st.button("สร้างบัญชีใหม่ (Sign Up)",
+                  on_click=toggle_mode, args=('register',), key="btn_go_reg")
 
-        with st.form("login_form", clear_on_submit=False):
-            user = st.text_input("ชื่อผู้ใช้งาน (Username)",
-                                 placeholder="กรุณากรอกชื่อผู้ใช้งาน")
-            pw = st.text_input(
-                "รหัสผ่าน (Password)", type="password", placeholder="Enter your password")
-
-            st.markdown("<br>", unsafe_allow_html=True)
-            submitted = st.form_submit_button("Sign In")
-
-            if submitted:
-                # [ โค้ดตรวจสอบ User / Pass ของคุณ Kean คงเดิมทั้งหมด ไม่ต้องแก้ ]
-                pass  # สมมติว่าเป็นโค้ดเดิม
-
-        # === ✨ นำโค้ด 1 บรรทัดนี้ มาวางอยู่นอกสุดของ st.form (เยื้องให้ตรงกับ with st.form) ===
-        st.button("ลืมรหัสผ่าน? (Reset Password)", type="tertiary",
-                  on_click=toggle_mode, args=('forgot_password',), key="btn_forgot_text")
+        # ❌ ลบ 2 บรรทัดด้านล่างนี้ทิ้งไปเลยครับ ❌
+        # st.button("ลืมรหัสผ่าน? (Reset Password)",
+        #          on_click=toggle_mode, args=('forgot_password',), key="btn_go_forgot")
 
     # --- โหมด 2: หน้า Register ---
     elif st.session_state['auth_mode'] == 'register':
@@ -154,10 +148,11 @@ with main_col1:
 # ฝั่งขวา: Form Area
 # ==========================================
 with main_col2:
-    # ---------------- LOGIN MODE (คงเดิม) ----------------
+    # ---------------- LOGIN MODE ----------------
     if st.session_state['auth_mode'] == 'login':
         st.markdown("<h2>Sign in to your account</h2>", unsafe_allow_html=True)
 
+        # 1. กรอบฟอร์มสำหรับ Login
         with st.form("login_form", clear_on_submit=False):
             user = st.text_input("ชื่อผู้ใช้งาน (Username)",
                                  placeholder="กรุณากรอกชื่อผู้ใช้งาน")
@@ -168,6 +163,7 @@ with main_col2:
             submitted = st.form_submit_button("Sign In")
 
             if submitted:
+                # [ โค้ดตรวจสอบ API Login ของคุณ Kean คงเดิมทั้งหมด ]
                 if user and pw:
                     try:
                         with st.spinner('กำลังตรวจสอบข้อมูล...'):
@@ -178,7 +174,6 @@ with main_col2:
                                 st.session_state['logged_in'] = True
                                 st.session_state['full_name'] = data.get(
                                     'full_name')
-
                                 current_user = data.get('username') or user
                                 st.session_state['username'] = current_user
 
@@ -194,6 +189,14 @@ with main_col2:
                         st.error("❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้")
                 else:
                     st.warning("กรุณากรอกข้อมูลให้ครบถ้วน")
+
+        # === 2. จุดที่ 3 ของเรา: วางปุ่มลืมรหัสผ่านไว้นอก st.form ===
+        # สังเกตการเยื้องบรรทัด (Indentation) จะต้องตรงกับ with st.form นะครับ
+        st.button("ลืมรหัสผ่าน? (Reset Password)",
+                  type="tertiary",
+                  on_click=toggle_mode,
+                  args=('forgot_password',),
+                  key="btn_forgot_text")
 
     # ---------------- REGISTER MODE ----------------
     # เปลี่ยนจาก else เป็น elif เพื่อให้รองรับ 3 โหมด
