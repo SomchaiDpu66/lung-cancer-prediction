@@ -64,15 +64,16 @@ if 'auth_mode' not in st.session_state:
 show_cookie_banner()
 
 
-def toggle_mode():
-    st.session_state['auth_mode'] = 'register' if st.session_state['auth_mode'] == 'login' else 'login'
+# ปรับฟังก์ชันให้รองรับ 3 โหมด (login, register, forgot_password)
+def toggle_mode(mode='login'):
+    st.session_state['auth_mode'] = mode
 
 
 # --- 4. โครงสร้าง Layout ---
 spacer_left, main_col1, main_col2, spacer_right = st.columns([1, 3, 5, 1])
 
 # ==========================================
-# ฝั่งซ้าย: Welcome Area (คงเดิม)
+# ฝั่งซ้าย: Welcome Area (อัปเดตรองรับ 3 โหมด)
 # ==========================================
 with main_col1:
     st.markdown("<div class='white-text' style='display: flex; flex-direction: column; align-items: center;'>",
@@ -81,6 +82,7 @@ with main_col1:
     st.markdown("<h1 style='margin-top: 10px; margin-bottom: 5px;'>LungGuard AI</h1>",
                 unsafe_allow_html=True)
 
+    # --- โหมด 1: หน้า Login ---
     if st.session_state['auth_mode'] == 'login':
         st.markdown("<h3 style='margin-top: 20px;'>Welcome</h3>",
                     unsafe_allow_html=True)
@@ -89,15 +91,31 @@ with main_col1:
         st.write("---")
         st.write("ยังไม่มีบัญชีผู้ใช้งานใช่หรือไม่?")
         st.button("สร้างบัญชีใหม่ (Sign Up)",
-                  on_click=toggle_mode, key="btn_go_reg")
-    else:
+                  on_click=toggle_mode, args=('register',), key="btn_go_reg")
+        # ปุ่มลืมรหัสผ่าน
+        st.button("ลืมรหัสผ่าน? (Reset Password)",
+                  on_click=toggle_mode, args=('forgot_password',), key="btn_go_forgot")
+
+    # --- โหมด 2: หน้า Register ---
+    elif st.session_state['auth_mode'] == 'register':
         st.markdown("<h3 style='margin-top: 20px;'>Join Us</h3>",
                     unsafe_allow_html=True)
         st.write("ลงทะเบียนเพื่อเริ่มต้นใช้งานระบบคัดกรองความเสี่ยงของคุณ")
         st.write("---")
         st.write("มีบัญชีผู้ใช้งานอยู่แล้ว?")
         st.button("เข้าสู่ระบบ (Sign In)",
-                  on_click=toggle_mode, key="btn_go_login")
+                  on_click=toggle_mode, args=('login',), key="btn_go_login")
+
+    # --- โหมด 3: หน้า Forgot Password ---
+    elif st.session_state['auth_mode'] == 'forgot_password':
+        st.markdown("<h3 style='margin-top: 20px;'>Recover Account</h3>",
+                    unsafe_allow_html=True)
+        st.write("รีเซ็ตรหัสผ่านของคุณเพื่อกลับเข้าสู่ระบบ")
+        st.write("---")
+        st.write("นึกรหัสผ่านออกแล้ว?")
+        st.button("กลับไปเข้าสู่ระบบ (Sign In)",
+                  on_click=toggle_mode, args=('login',), key="btn_back_login")
+
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
@@ -145,8 +163,9 @@ with main_col2:
                 else:
                     st.warning("กรุณากรอกข้อมูลให้ครบถ้วน")
 
-    # ---------------- REGISTER MODE (ปรับปรุง UI & UX ล่าสุด) ----------------
-    else:
+    # ---------------- REGISTER MODE ----------------
+    # เปลี่ยนจาก else เป็น elif เพื่อให้รองรับ 3 โหมด
+    elif st.session_state['auth_mode'] == 'register':
         st.markdown("<h2>Create your account</h2>", unsafe_allow_html=True)
         st.write("กรุณากรอกข้อมูลส่วนตัวเพื่อลงทะเบียน (ระยะทดสอบระบบ)")
 
@@ -179,7 +198,6 @@ with main_col2:
             reg_submitted = st.form_submit_button("Sign Up")
 
             if reg_submitted:
-                # --- เพิ่มเงื่อนไขตรวจสอบ Email ว่ามี @ หรือไม่ ---
                 if not pta_username or not pta_firstname or not pta_lastname or not password or not pta_email:
                     st.warning(
                         "⚠️ กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบถ้วน")
@@ -189,14 +207,12 @@ with main_col2:
                 elif password != password_confirm:
                     st.error("❌ รหัสผ่านไม่ตรงกัน")
                 else:
-                    # จัดเตรียม Payload ส่งให้ API
                     payload = {
                         "pta_username": pta_username,
                         "pta_firstname": pta_firstname,
                         "pta_lastname": pta_lastname,
-                        "pta_email": pta_email,  # ใช้อีเมลที่กรอกจริง
+                        "pta_email": pta_email,
                         "password": password,
-
                         # --- ข้อมูลที่ซ่อนไว้เพื่อลดภาระผู้ทดสอบ (ยัดค่า Default กัน API Error) ---
                         "pta_address_number": "-",
                         "pta_phone": "-",
@@ -213,22 +229,66 @@ with main_col2:
                             res = requests.post(
                                 f"{API_URL}/user/users", json=payload)
 
-                            # --- [ส่วนที่ต้องแก้ไข: ดักจับเมื่อสำเร็จ] ---
                             if res.status_code == 200:
                                 st.success(
                                     "🎉 ลงทะเบียนสำเร็จ! กำลังพาท่านไปยังหน้าเข้าสู่ระบบ...")
-
-                                # เพิ่มการหน่วงเวลา 1.5 วินาทีให้ผู้ใช้มองเห็นข้อความ
                                 import time
                                 time.sleep(1.5)
-
-                                # เปลี่ยนสถานะให้เป็นหน้า Login และสั่งรีเฟรชหน้าจอ
                                 st.session_state['auth_mode'] = 'login'
                                 st.rerun()
-                            # ----------------------------------------
-
                             else:
                                 st.error(
                                     f"❌ {res.json().get('detail', 'เกิดข้อผิดพลาดจากระบบ')}")
                     except Exception as e:
                         st.error(f"❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้: {e}")
+
+    # ---------------- FORGOT PASSWORD MODE ----------------
+    # เพิ่มบล็อกนี้เข้าไปเป็นโหมดที่ 3
+    elif st.session_state['auth_mode'] == 'forgot_password':
+        st.markdown("<h2>Reset Password</h2>", unsafe_allow_html=True)
+        st.write("กรุณากรอกข้อมูลเพื่อยืนยันตัวตนและตั้งรหัสผ่านใหม่")
+
+        with st.form("reset_password_form"):
+            r_user = st.text_input("ชื่อผู้ใช้งาน (Username) *")
+            r_email = st.text_input(
+                "อีเมลที่ใช้ลงทะเบียน *", placeholder="example@domain.com")
+
+            pw_col1, pw_col2 = st.columns(2)
+            with pw_col1:
+                r_new_pw = st.text_input("รหัสผ่านใหม่ *", type="password")
+            with pw_col2:
+                r_new_pw_confirm = st.text_input(
+                    "ยืนยันรหัสผ่านใหม่ *", type="password")
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            reset_submitted = st.form_submit_button("ยืนยันการเปลี่ยนรหัสผ่าน")
+
+            if reset_submitted:
+                if not r_user or not r_email or not r_new_pw:
+                    st.warning("⚠️ กรุณากรอกข้อมูลให้ครบถ้วน")
+                elif r_new_pw != r_new_pw_confirm:
+                    st.error("❌ รหัสผ่านใหม่ไม่ตรงกัน")
+                else:
+                    payload = {
+                        "pta_username": r_user,
+                        "pta_email": r_email,
+                        "new_password": r_new_pw
+                    }
+                    try:
+                        with st.spinner('กำลังตรวจสอบข้อมูล...'):
+                            # ยิง API ไปที่ Endpoint ใหม่สำหรับเปลี่ยนรหัสผ่าน
+                            res = requests.put(
+                                f"{API_URL}/user/reset-password", json=payload)
+
+                            if res.status_code == 200:
+                                st.success(
+                                    "✅ เปลี่ยนรหัสผ่านสำเร็จ! กำลังพาท่านกลับไปหน้าเข้าสู่ระบบ...")
+                                import time
+                                time.sleep(2)
+                                st.session_state['auth_mode'] = 'login'
+                                st.rerun()
+                            else:
+                                st.error(
+                                    f"❌ {res.json().get('detail', 'เกิดข้อผิดพลาด')}")
+                    except Exception as e:
+                        st.error("❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้")

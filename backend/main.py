@@ -385,5 +385,38 @@ def get_user_history(username: str):
         return results
 
 
+# 1. สร้าง Schema สำหรับรับข้อมูล Reset Password
+class PasswordResetRequest(BaseModel):
+    pta_username: str
+    pta_email: str
+    new_password: str
+
+# 2. สร้าง Endpoint สำหรับรีเซ็ตรหัสผ่าน
+
+
+@app.put("/user/reset-password", tags=["User Management"])
+def reset_password(req: PasswordResetRequest):
+    with Session(engine) as session:
+        # ค้นหา User จาก Username
+        statement = select(User).where(User.pta_username == req.pta_username)
+        user = session.exec(statement).first()
+
+        if not user:
+            raise HTTPException(
+                status_code=404, detail="ไม่พบชื่อผู้ใช้งานนี้ในระบบ")
+
+        # ตรวจสอบว่า Email ตรงกับที่ลงทะเบียนไว้หรือไม่
+        if user.pta_email != req.pta_email:
+            raise HTTPException(
+                status_code=400, detail="อีเมลไม่ตรงกับข้อมูลในระบบ")
+
+        # ถ้าผ่านทั้งคู่ ให้ทำการอัปเดตรหัสผ่านใหม่
+        user.password = req.new_password
+        session.add(user)
+        session.commit()
+
+        return {"message": "เปลี่ยนรหัสผ่านสำเร็จ"}
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8001)
