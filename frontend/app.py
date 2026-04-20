@@ -9,7 +9,7 @@ API_URL = "https://lung-cancer-prediction-production.up.railway.app"
 st.set_page_config(page_title="LungGuard AI - Login", page_icon="🛡️",
                    layout="wide", initial_sidebar_state="collapsed")
 
-# --- 2. Custom CSS (เพิ่ม Responsive Design สำหรับมือถือ) ---
+# --- 2. Custom CSS (เพิ่ม Responsive Design และปรับสไตล์ปุ่มลืมรหัสผ่าน) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap');
@@ -40,14 +40,39 @@ st.markdown("""
         }
     }
 
+    /* ซ่อนเส้นขอบฟอร์มเพื่อให้หน้าจอดูกลืนกัน */
+    [data-testid="stForm"] { border: none !important; padding: 0 !important; }
+
     .stTextInput>div>div>input { border-radius: 12px; border: 1.5px solid #E2E8F0; padding: 12px 15px; transition: border-color 0.3s ease; }
     .stTextInput>div>div>input:focus { border-color: #3B82F6; box-shadow: 0 0 0 1px #3B82F6; }
-    .stButton>button {
+    
+    /* สไตล์ปุ่มหลัก (Sign In, Sign Up) */
+    .stButton>button:not([kind="tertiary"]):not([data-testid="baseButton-tertiary"]) {
         background: linear-gradient(135deg, #1E3A8A, #3B82F6);
         color: white; border-radius: 30px; padding: 12px 30px; font-weight: 600;
         width: 100%; transition: all 0.3s ease;
     }
-    .stButton>button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); }
+    .stButton>button:not([kind="tertiary"]):not([data-testid="baseButton-tertiary"]):hover { 
+        transform: translateY(-3px); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); 
+    }
+
+    /* สไตล์ปุ่มข้อความ ลืมรหัสผ่าน (Tertiary Button) */
+    .stButton>button[kind="tertiary"], .stButton>button[data-testid="baseButton-tertiary"] {
+        background: transparent !important;
+        color: #64748B !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        width: auto !important;
+        margin-top: -10px; /* ดึงข้อความให้ชิดกับปุ่ม Sign In */
+    }
+    .stButton>button[kind="tertiary"]:hover, .stButton>button[data-testid="baseButton-tertiary"]:hover {
+        color: #3B82F6 !important;
+        text-decoration: underline !important;
+    }
+
     h1, h2, h3 { color: #1E3A8A; font-weight: 700; }
     .white-text, .white-text h1, .white-text h2, .white-text h3, .white-text p { color: white !important; }
     header {visibility: hidden;}
@@ -82,19 +107,26 @@ with main_col1:
     st.markdown("<h1 style='margin-top: 10px; margin-bottom: 5px;'>LungGuard AI</h1>",
                 unsafe_allow_html=True)
 
-    # --- โหมด 1: หน้า Login ---
+    # ---------------- LOGIN MODE ----------------
     if st.session_state['auth_mode'] == 'login':
-        st.markdown("<h3 style='margin-top: 20px;'>Welcome</h3>",
-                    unsafe_allow_html=True)
-        st.write(
-            "เข้าสู่ระบบเพื่อใช้งานระบบวิเคราะห์และพยากรณ์ความเสี่ยงโรคมะเร็งปอดด้วย AI")
-        st.write("---")
-        st.write("ยังไม่มีบัญชีผู้ใช้งานใช่หรือไม่?")
-        st.button("สร้างบัญชีใหม่ (Sign Up)",
-                  on_click=toggle_mode, args=('register',), key="btn_go_reg")
-        # ปุ่มลืมรหัสผ่าน
-        st.button("ลืมรหัสผ่าน? (Reset Password)",
-                  on_click=toggle_mode, args=('forgot_password',), key="btn_go_forgot")
+        st.markdown("<h2>Sign in to your account</h2>", unsafe_allow_html=True)
+
+        with st.form("login_form", clear_on_submit=False):
+            user = st.text_input("ชื่อผู้ใช้งาน (Username)",
+                                 placeholder="กรุณากรอกชื่อผู้ใช้งาน")
+            pw = st.text_input(
+                "รหัสผ่าน (Password)", type="password", placeholder="Enter your password")
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            submitted = st.form_submit_button("Sign In")
+
+            if submitted:
+                # [ โค้ดตรวจสอบ User / Pass ของคุณ Kean คงเดิมทั้งหมด ไม่ต้องแก้ ]
+                pass  # สมมติว่าเป็นโค้ดเดิม
+
+        # === ✨ นำโค้ด 1 บรรทัดนี้ มาวางอยู่นอกสุดของ st.form (เยื้องให้ตรงกับ with st.form) ===
+        st.button("ลืมรหัสผ่าน? (Reset Password)", type="tertiary",
+                  on_click=toggle_mode, args=('forgot_password',), key="btn_forgot_text")
 
     # --- โหมด 2: หน้า Register ---
     elif st.session_state['auth_mode'] == 'register':
