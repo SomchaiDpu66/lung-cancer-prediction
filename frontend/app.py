@@ -145,43 +145,56 @@ with main_col2:
                 else:
                     st.warning("กรุณากรอกข้อมูลให้ครบถ้วน")
 
-    # ---------------- REGISTER MODE (ปรับปรุงใหม่ ลดฟิลด์) ----------------
+    # ---------------- REGISTER MODE (ปรับปรุง UI & UX ล่าสุด) ----------------
     else:
         st.markdown("<h2>Create your account</h2>", unsafe_allow_html=True)
         st.write("กรุณากรอกข้อมูลส่วนตัวเพื่อลงทะเบียน (ระยะทดสอบระบบ)")
 
         with st.form("register_form"):
-            # แบ่งเป็น 2 คอลัมน์ให้ดูสวยงามและไม่ยาวเกินไป
-            r_col1, r_col2 = st.columns(2)
-            with r_col1:
-                pta_username = st.text_input(
-                    "ชื่อผู้ใช้งาน (Username) *", placeholder="ตัวอักษรหรือตัวเลข")
-                pta_firstname = st.text_input("ชื่อจริง *")
-                password = st.text_input("ตั้งรหัสผ่าน *", type="password")
+            # 1. Username (เต็มบรรทัด)
+            pta_username = st.text_input(
+                "ชื่อผู้ใช้งาน (Username) *", placeholder="ตัวอักษรหรือตัวเลข")
 
-            with r_col2:
-                pta_email = st.text_input("อีเมล")
+            # 2. จัดกลุ่ม ชื่อ-นามสกุล ให้อยู่แถวเดียวกัน (PC จะอยู่ซ้าย-ขวา / Mobile จะเรียงบน-ล่าง)
+            name_col1, name_col2 = st.columns(2)
+            with name_col1:
+                pta_firstname = st.text_input("ชื่อจริง *")
+            with name_col2:
                 pta_lastname = st.text_input("นามสกุล *")
+
+            # 3. จัดกลุ่ม รหัสผ่าน ให้อยู่แถวเดียวกัน
+            pw_col1, pw_col2 = st.columns(2)
+            with pw_col1:
+                password = st.text_input("ตั้งรหัสผ่าน *", type="password")
+            with pw_col2:
                 password_confirm = st.text_input(
                     "ยืนยันรหัสผ่าน *", type="password")
+
+            # 4. อีเมล (ช่องสุดท้าย พร้อมบังคับตรวจสอบ)
+            pta_email = st.text_input(
+                "อีเมล *", placeholder="example@domain.com")
 
             st.markdown(
                 "<small style='color: gray;'>* โดยการสมัครสมาชิก คุณยอมรับเงื่อนไขการใช้งาน</small>", unsafe_allow_html=True)
             reg_submitted = st.form_submit_button("Sign Up")
 
             if reg_submitted:
-                if not pta_username or not pta_firstname or not pta_lastname or not password:
+                # --- เพิ่มเงื่อนไขตรวจสอบ Email ว่ามี @ หรือไม่ ---
+                if not pta_username or not pta_firstname or not pta_lastname or not password or not pta_email:
                     st.warning(
-                        "กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบถ้วน")
+                        "⚠️ กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบถ้วน")
+                elif "@" not in pta_email or "." not in pta_email.split("@")[-1]:
+                    st.error(
+                        "❌ กรุณากรอกรูปแบบอีเมลให้ถูกต้อง (ต้องมี @ และจุดทศนิยม เช่น user@mail.com)")
                 elif password != password_confirm:
                     st.error("❌ รหัสผ่านไม่ตรงกัน")
                 else:
-                    # จัดเตรียม Payload ส่งให้ API (ฟิลด์ที่ตัดออกไป จะถูกส่งเป็นค่า Default)
+                    # จัดเตรียม Payload ส่งให้ API
                     payload = {
                         "pta_username": pta_username,
                         "pta_firstname": pta_firstname,
                         "pta_lastname": pta_lastname,
-                        "pta_email": pta_email or "-",
+                        "pta_email": pta_email,  # ใช้อีเมลที่กรอกจริง
                         "password": password,
 
                         # --- ข้อมูลที่ซ่อนไว้เพื่อลดภาระผู้ทดสอบ (ยัดค่า Default กัน API Error) ---
