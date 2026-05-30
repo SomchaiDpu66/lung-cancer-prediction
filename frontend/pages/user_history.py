@@ -2,6 +2,30 @@ import streamlit as st
 import requests
 import pandas as pd
 from menu import show_sidebar, show_cookie_banner
+from datetime import datetime
+
+
+def to_thai_datetime(date_str):
+    if not date_str or pd.isna(date_str):
+        return "-"
+    try:
+        # ลบตัวอักษร T (ถ้ามี) และเศษเสี้ยววินาทีออก เพื่อให้เหลือแค่ "YYYY-MM-DD HH:MM:SS"
+        clean_date = str(date_str).replace("T", " ").split(".")[0]
+        dt = datetime.strptime(clean_date, "%Y-%m-%d %H:%M:%S")
+
+        # รายชื่อเดือนภาษาไทยแบบย่อ
+        thai_months = ["", "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+                       "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
+
+        # แปลง ค.ศ. เป็น พ.ศ.
+        thai_year = dt.year + 543
+
+        # จัดรูปแบบข้อความ เช่น "29 พ.ค. 2569 เวลา 10:02 น."
+        return f"{dt.day} {thai_months[dt.month]} {thai_year} เวลา {dt.strftime('%H:%M')} น."
+    except Exception:
+        # หากเกิดข้อผิดพลาดในการแปลง จะแสดงข้อมูลดิบแบบเดิม
+        return date_str
+
 
 st.set_page_config(page_title="ประวัติการใช้งาน", layout="wide")
 
@@ -59,6 +83,11 @@ try:
             # เลือกเฉพาะคอลัมน์ที่ต้องการแสดง
             st.dataframe(df[['วัน-เวลาที่ตรวจ', 'ความเสี่ยง (%)',
                          'ผลประเมินเบื้องต้น']], use_container_width=True)
+
+            # === 🌟 เพิ่มโค้ดบรรทัดนี้ลงไป เพื่อแปลงข้อมูลในคอลัมน์ให้เป็นภาษาไทย ===
+            if 'วัน-เวลาที่ตรวจ' in df.columns:
+                df['วัน-เวลาที่ตรวจ'] = df['วัน-เวลาที่ตรวจ'].apply(
+                    to_thai_datetime)
 
         else:
             st.info(
